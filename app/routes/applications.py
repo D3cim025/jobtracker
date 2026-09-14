@@ -10,6 +10,12 @@ from app.services.application_service import (
     save_application,
     update_application_choice,
 )
+from app.services.duplication_service import (
+    create_duplicate,
+    duplicate_matches,
+    duplication_defaults,
+    parse_duplication_form,
+)
 from app.services.reminder_service import reminder_groups
 
 applications_bp = Blueprint("applications", __name__, url_prefix="/applications")
@@ -85,6 +91,33 @@ def edit(application_id: int):
         application=application,
         errors=errors,
         form_data=request.form if request.method == "POST" else {},
+        **form_context(),
+    )
+
+
+@applications_bp.route("/<int:application_id>/apply-again", methods=["GET", "POST"])
+def apply_again(application_id: int):
+    source_application = db.get_or_404(Application, application_id)
+    errors = {}
+    duplicate_applications = []
+    form_data = duplication_defaults(source_application)
+    if request.method == "POST":
+        form_data = request.form
+        values, errors = parse_duplication_form(request.form, source_application)
+        if not errors:
+            duplicate_applications = duplicate_matches(values)
+            if not duplicate_applications or request.form.get("confirm_duplicate") == "1":
+                application = create_duplicate(values)
+                if application is not None:
+                    flash("New application created. The original was not changed.", "success")
+                    return redirect(url_for("applications.detail", application_id=application.id))
+                flash("The new application could not be saved. Please try again.", "error")
+    return render_template(
+        "applications/apply_again.html",
+        source_application=source_application,
+        errors=errors,
+        form_data=form_data,
+        duplicate_applications=duplicate_applications,
         **form_context(),
     )
 
