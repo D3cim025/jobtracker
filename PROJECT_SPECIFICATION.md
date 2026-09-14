@@ -8,7 +8,7 @@ The initial implementation uses Python 3.12+, Flask, SQLAlchemy, SQLite, Jinja t
 
 ## 2. Current implementation status
 
-Stages 1 through 13 provide the Flask foundation and all functionality through offline analytics, followed by an application-wide responsive pass and persistent light/dark theming. Every current page now uses fluid narrow-screen layouts, touch-friendly controls, guarded overflow, consistent component states, and an accessible theme control without external assets.
+Stages 1 through 14 provide the Flask foundation and all functionality through offline analytics, responsive layouts, persistent theming, and a final security and quality hardening pass. The audit strengthened validation, status-history integrity, filesystem failure recovery, installation secrets, and defensive response headers without changing the schema or local-first design.
 
 ## 3. Functional requirements
 
@@ -97,6 +97,8 @@ Stage 12 acceptance: navigation, forms, contained tables, cards, detail sections
 
 Stage 13 acceptance: a validated local preference selects light or dark mode before stylesheet rendering, persists across navigation and refresh, synchronizes across tabs, and exposes its state through an accessible toggle. Both themes cover forms, tables, cards, messages, statuses, destructive controls, reminders, analytics, empty/error states, keyboard focus, and reduced-motion preferences with no external dependency.
 
+Stage 14 acceptance: all mutations remain CSRF-protected and POST-only where destructive; malformed URLs, unsafe numeric values, oversized references, metadata, and filenames fail as validation rather than server errors. Status transitions from every editing path create exactly one atomic history event. Upload filesystem failures roll back database work and attempt local cleanup, each installation receives a persistent random secret when none is configured, and responses include defensive no-sniff, framing, referrer, and cache headers.
+
 For the initial empty installation, `init-db` is the schema baseline and uses SQLAlchemy metadata to create only missing tables. It is not an upgrade mechanism. Once released databases can contain user data, every schema change must ship as an explicit, sequential migration that first requires a verified backup, runs transactionally where SQLite permits, records its schema version, and is covered by upgrade tests. A future stage must introduce that first versioned migration before changing this baseline; `drop_all` or automatic destructive recreation must never be used for user data.
 
 ## 8. Delivery roadmap
@@ -114,9 +116,9 @@ For the initial empty installation, `init-db` is the schema baseline and uses SQ
 11. Offline analytics (complete).
 12. Responsive desktop/mobile refinement (complete).
 13. Persistent theme, empty/error states, confirmations, and accessibility polish (complete).
-14. Consistent backup, warned restore, and CSV/JSON export (next stage).
-15. Trusted-LAN/iPhone documentation and validation.
-16. Full security, privacy, quality, and offline review.
+14. Final security and quality review (complete).
+15. Consistent backup, warned restore, and CSV/JSON export (future stage).
+16. Trusted-LAN/iPhone documentation and validation.
 17. Portfolio documentation and UI consistency.
 
 Future options include authentication for broader remote access, reusable application templates, PWA installation/offline caching, and opt-in synchronization. None may compromise local ownership or historical accuracy.

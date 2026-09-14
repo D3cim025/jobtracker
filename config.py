@@ -5,7 +5,7 @@ from pathlib import Path
 class Config:
     """Default local configuration. Override values through the app factory."""
 
-    SECRET_KEY = os.environ.get("JOBTRACKER_SECRET_KEY", "local-development-only-change-me")
+    SECRET_KEY = os.environ.get("JOBTRACKER_SECRET_KEY")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
     UPLOAD_ROOT = str(Path(__file__).resolve().parent / "uploads")

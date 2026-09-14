@@ -57,6 +57,8 @@ def validate_document_upload(upload: FileStorage | None) -> tuple[str | None, st
     if upload is None or not upload.filename:
         return None, "Choose a document file."
     original_name = upload.filename.strip()
+    if len(original_name) > 255:
+        return None, "The file name must be 255 characters or fewer."
     if Path(original_name).name != original_name or "/" in original_name or "\\" in original_name:
         return None, "The file name is unsafe. Rename the file and try again."
     safe_name = secure_filename(original_name)
@@ -65,8 +67,11 @@ def validate_document_upload(upload: FileStorage | None) -> tuple[str | None, st
         return None, "Upload a PDF, DOC, DOCX, ODT, TXT, PNG, or JPEG file."
     if upload.mimetype not in ALLOWED_MIME_TYPES:
         return None, "The selected file type is not allowed."
-    header = upload.stream.read(8)
-    upload.stream.seek(0)
+    try:
+        header = upload.stream.read(8)
+        upload.stream.seek(0)
+    except (OSError, ValueError):
+        return None, "The selected file could not be read."
     if not _valid_signature(extension, header):
         return None, "The file contents do not match the file extension."
     return extension, None
@@ -97,22 +102,28 @@ def create_document(
 
     assert document_type and upload and upload.filename and extension
     relative_path = Path(str(application.id)) / f"{uuid4().hex}{extension}"
-    destination = stored_document_path(str(relative_path))
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    upload.save(destination)
-    document = Document(
-        application=application,
-        document_type=document_type,
-        file_path=str(relative_path),
-        original_file_name=upload.filename.strip(),
-        notes=notes,
-    )
-    db.session.add(document)
+    destination: Path | None = None
     try:
+        destination = stored_document_path(str(relative_path))
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        upload.save(destination)
+        document = Document(
+            application=application,
+            document_type=document_type,
+            file_path=str(relative_path),
+            original_file_name=upload.filename.strip(),
+            notes=notes,
+        )
+        db.session.add(document)
         db.session.commit()
-    except SQLAlchemyError:
+    except (OSError, SQLAlchemyError, ValueError):
         db.session.rollback()
-        destination.unlink(missing_ok=True)
+        try:
+            if destination is not None:
+                destination.unlink(missing_ok=True)
+                destination.parent.rmdir()
+        except OSError:
+            pass
         return None, {"file": "The document could not be saved. Please try again."}
     return document, {}
 
@@ -123,6 +134,8 @@ def _quarantine_paths(documents: list[Document]) -> list[tuple[Path, Path]]:
         for document in documents:
             path = stored_document_path(document.file_path)
             quarantine = path.with_suffix(path.suffix + ".deleting")
+            if quarantine.exists():
+                raise OSError("A document deletion is already pending.")
             if path.exists():
                 path.replace(quarantine)
                 moved.append((path, quarantine))

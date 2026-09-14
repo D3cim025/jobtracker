@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
@@ -52,9 +52,10 @@ def dashboard_data(
     local_today = today or local_now.date()
     week_start, month_start = calendar_boundaries(local_today)
     tomorrow = local_today + timedelta(days=1)
-    week_start_dt = datetime.combine(week_start, time.min)
-    month_start_dt = datetime.combine(month_start, time.min)
-    tomorrow_dt = datetime.combine(tomorrow, time.min)
+    local_zone = datetime.now().astimezone().tzinfo
+    week_start_dt = datetime.combine(week_start, time.min, local_zone).astimezone(UTC).replace(tzinfo=None)
+    month_start_dt = datetime.combine(month_start, time.min, local_zone).astimezone(UTC).replace(tzinfo=None)
+    tomorrow_dt = datetime.combine(tomorrow, time.min, local_zone).astimezone(UTC).replace(tzinfo=None)
 
     grouped_counts = dict(
         db.session.execute(

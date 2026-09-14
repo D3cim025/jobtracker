@@ -70,7 +70,10 @@ def parse_resume_metadata(form: Mapping[str, str]) -> tuple[dict, dict[str, str]
         elif len(value) > maximum:
             errors[field] = f"Must be {maximum} characters or fewer."
         values[field] = value or None
-    values["description"] = form.get("description", "").strip() or None
+    description = form.get("description", "").strip() or None
+    if description and len(description) > 5000:
+        errors["description"] = "Description must be 5,000 characters or fewer."
+    values["description"] = description
     return values, errors
 
 
@@ -78,6 +81,8 @@ def validate_upload(upload: FileStorage | None) -> tuple[str | None, str | None]
     if upload is None or not upload.filename:
         return None, "Choose a resume file."
     original_name = upload.filename.strip()
+    if len(original_name) > 255:
+        return None, "The file name must be 255 characters or fewer."
     if Path(original_name).name != original_name or "/" in original_name or "\\" in original_name:
         return None, "The file name is unsafe. Rename the file and try again."
     safe_name = secure_filename(original_name)
@@ -87,8 +92,11 @@ def validate_upload(upload: FileStorage | None) -> tuple[str | None, str | None]
     if upload.mimetype not in ALLOWED_MIME_TYPES:
         return None, "The selected file type does not match an allowed resume format."
 
-    header = upload.stream.read(8)
-    upload.stream.seek(0)
+    try:
+        header = upload.stream.read(8)
+        upload.stream.seek(0)
+    except (OSError, ValueError):
+        return None, "The selected file could not be read."
     signature_valid = (
         extension == ".txt"
         or (extension == ".pdf" and header.startswith(b"%PDF-"))
@@ -110,21 +118,26 @@ def create_resume(form: Mapping[str, str], upload: FileStorage | None) -> tuple[
 
     assert upload is not None and upload.filename and extension
     stored_name = f"{uuid4().hex}{extension}"
-    destination = stored_resume_path(stored_name)
-    upload.save(destination)
-    file_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
-    resume = Resume(
-        **values,
-        original_file_name=upload.filename.strip(),
-        stored_file_name=stored_name,
-        file_hash=file_hash,
-    )
-    db.session.add(resume)
+    destination: Path | None = None
     try:
+        destination = stored_resume_path(stored_name)
+        upload.save(destination)
+        file_hash = hashlib.sha256(destination.read_bytes()).hexdigest()
+        resume = Resume(
+            **values,
+            original_file_name=upload.filename.strip(),
+            stored_file_name=stored_name,
+            file_hash=file_hash,
+        )
+        db.session.add(resume)
         db.session.commit()
-    except SQLAlchemyError:
+    except (OSError, SQLAlchemyError, ValueError):
         db.session.rollback()
-        destination.unlink(missing_ok=True)
+        try:
+            if destination is not None:
+                destination.unlink(missing_ok=True)
+        except OSError:
+            pass
         return None, {"file": "The resume could not be saved. Please try again."}
     return resume, {}
 
@@ -154,6 +167,8 @@ def delete_resume(resume: Resume) -> tuple[bool, str]:
 
     quarantine = path.with_suffix(path.suffix + ".deleting")
     try:
+        if quarantine.exists():
+            raise OSError("A resume deletion is already pending.")
         if path.exists():
             path.replace(quarantine)
         db.session.delete(resume)

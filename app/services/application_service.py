@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Mapping
 from urllib.parse import urlparse
@@ -18,7 +18,6 @@ from app.models import (
     TimelineEvent,
     TimelineEventType,
     WorkSetup,
-    utc_now,
 )
 
 
@@ -31,6 +30,9 @@ SORT_COLUMNS = {
     "date_applied": Application.date_applied,
     "updated": Application.updated_at,
 }
+MAX_SALARY = Decimal("9999999999.99")
+MAX_SQLITE_ID = 2**63 - 1
+MAX_NOTES_LENGTH = 5000
 
 
 def list_applications(filters: Mapping[str, str]) -> list[Application]:
@@ -128,7 +130,10 @@ def parse_application_form(form: Mapping[str, str]) -> tuple[dict, dict[str, str
         if len(value) > maximum:
             errors[field] = f"Must be {maximum} characters or fewer."
         values[field] = value or None
-    values["notes"] = form.get("notes", "").strip() or None
+    notes = form.get("notes", "").strip() or None
+    if notes and len(notes) > MAX_NOTES_LENGTH:
+        errors["notes"] = "Notes must be 5,000 characters or fewer."
+    values["notes"] = notes
 
     currency = form.get("currency", "PHP").strip().upper()
     if len(currency) != 3 or not currency.isalpha():
@@ -139,11 +144,16 @@ def parse_application_form(form: Mapping[str, str]) -> tuple[dict, dict[str, str
         raw_value = form.get(field, "").strip()
         try:
             value = Decimal(raw_value) if raw_value else None
-            if value is not None and value < 0:
+            if value is not None and (
+                not value.is_finite()
+                or value < 0
+                or value > MAX_SALARY
+                or value.as_tuple().exponent < -2
+            ):
                 raise InvalidOperation
             values[field] = value
         except InvalidOperation:
-            errors[field] = "Enter a non-negative amount."
+            errors[field] = "Enter an amount from 0 to 9,999,999,999.99 with at most two decimals."
 
     if (
         values.get("salary_min") is not None
@@ -166,8 +176,12 @@ def parse_application_form(form: Mapping[str, str]) -> tuple[dict, dict[str, str
 
     job_url = form.get("job_url", "").strip()
     if job_url:
-        parsed = urlparse(job_url)
-        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        try:
+            parsed = urlparse(job_url)
+            valid_url = parsed.scheme in {"http", "https"} and bool(parsed.netloc)
+        except ValueError:
+            valid_url = False
+        if not valid_url:
             errors["job_url"] = "Enter a complete http:// or https:// URL."
         elif len(job_url) > 2048:
             errors["job_url"] = "URL is too long."
@@ -186,7 +200,9 @@ def parse_application_form(form: Mapping[str, str]) -> tuple[dict, dict[str, str
         except ValueError:
             errors["resume_id"] = "Select a valid resume."
         else:
-            if db.session.get(Resume, resume_id) is None:
+            if resume_id <= 0 or resume_id > MAX_SQLITE_ID:
+                errors["resume_id"] = "Select a valid resume."
+            elif db.session.get(Resume, resume_id) is None:
                 errors["resume_id"] = "The selected resume no longer exists."
             else:
                 values["resume_id"] = resume_id
@@ -195,8 +211,18 @@ def parse_application_form(form: Mapping[str, str]) -> tuple[dict, dict[str, str
 
 
 def save_application(application: Application, values: dict) -> bool:
+    old_status = application.status if application.id is not None else None
     for field, value in values.items():
         setattr(application, field, value)
+    new_status = values.get("status")
+    if old_status is not None and new_status is not None and new_status != old_status:
+        application.timeline_events.append(
+            TimelineEvent(
+                event_type=TimelineEventType.STATUS_CHANGED,
+                event_date=datetime.now(),
+                notes=f"Status changed from {old_status.value} to {new_status.value}.",
+            )
+        )
     db.session.add(application)
     try:
         db.session.commit()
@@ -240,14 +266,4 @@ def update_application_choice(application: Application, field: str, raw_value: s
         new_value = enum_class(raw_value)
     except ValueError:
         return False
-    old_value = getattr(application, field)
-    setattr(application, field, new_value)
-    if field == "status" and new_value != old_value:
-        application.timeline_events.append(
-            TimelineEvent(
-                event_type=TimelineEventType.STATUS_CHANGED,
-                event_date=utc_now(),
-                notes=f"Status changed from {old_value.value} to {new_value.value}.",
-            )
-        )
-    return save_application(application, {})
+    return save_application(application, {field: new_value})

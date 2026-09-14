@@ -1,3 +1,4 @@
+import secrets
 from pathlib import Path
 
 import click
@@ -11,6 +12,27 @@ from config import Config, sqlite_uri
 
 db = SQLAlchemy()
 csrf = CSRFProtect()
+
+
+def installation_secret(instance_path: str) -> str:
+    secret_path = Path(instance_path) / ".secret_key"
+    try:
+        secret = secret_path.read_text(encoding="ascii").strip()
+    except FileNotFoundError:
+        secret = secrets.token_hex(32)
+        try:
+            with secret_path.open("x", encoding="ascii") as secret_file:
+                secret_file.write(secret)
+        except FileExistsError:
+            try:
+                secret = secret_path.read_text(encoding="ascii").strip()
+            except OSError as error:
+                raise RuntimeError("JobTracker could not read its local secret key.") from error
+        except OSError as error:
+            raise RuntimeError("JobTracker could not create its local secret key.") from error
+    if len(secret) < 32:
+        raise RuntimeError("JobTracker's local secret key is invalid.")
+    return secret
 
 
 @event.listens_for(Engine, "connect")
@@ -34,6 +56,8 @@ def create_app(test_config: dict | None = None) -> Flask:
         app.config.from_mapping(test_config)
 
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+    if not app.config.get("SECRET_KEY"):
+        app.config["SECRET_KEY"] = installation_secret(app.instance_path)
     (Path(app.config["UPLOAD_ROOT"]) / "resumes").mkdir(parents=True, exist_ok=True)
     (Path(app.config["UPLOAD_ROOT"]) / "documents").mkdir(parents=True, exist_ok=True)
 
@@ -58,6 +82,14 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.register_blueprint(timeline_bp)
     app.register_blueprint(reminders_bp)
     app.register_blueprint(analytics_bp)
+
+    @app.after_request
+    def security_headers(response):
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        response.headers.setdefault("Cache-Control", "no-store")
+        return response
 
     @app.cli.command("init-db")
     def init_db_command():
