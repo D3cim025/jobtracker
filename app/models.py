@@ -5,7 +5,7 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Numeric, String, Text
+from sqlalchemy import CheckConstraint, Date, DateTime, ForeignKey, Index, Numeric, String, Text, event, inspect
 from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -199,7 +199,9 @@ class Resume(TimestampMixin, db.Model):
     file_hash: Mapped[str | None] = mapped_column(String(64), index=True)
 
     applications: Mapped[list[Application]] = relationship(
-        back_populates="resume", passive_deletes=True
+        back_populates="resume",
+        passive_deletes=True,
+        order_by="Application.created_at.desc()",
     )
 
     @validates("display_name", "original_file_name", "stored_file_name", "version_name")
@@ -217,6 +219,18 @@ class Resume(TimestampMixin, db.Model):
         if len(cleaned) != 64 or any(character not in "0123456789abcdef" for character in cleaned):
             raise ValueError("File hash must be a SHA-256 hexadecimal digest.")
         return cleaned
+
+
+@event.listens_for(Resume, "before_update")
+def preserve_resume_file_identity(_mapper, _connection, resume: Resume) -> None:
+    """A stored resume file is immutable after its version record is created."""
+
+    state = inspect(resume)
+    immutable_fields = ("original_file_name", "stored_file_name", "file_hash")
+    if any(state.attrs[field].history.has_changes() for field in immutable_fields):
+        raise ValueError(
+            "Resume file identity cannot be changed. Upload a new resume version instead."
+        )
 
 
 class Document(db.Model):
