@@ -1,0 +1,8 @@
+{% macro field_value(name, fallback='') -%}{{ form_data.get(name, fallback if fallback is not none else '') }}{%- endmacro %}
+<div class="form-grid">
+  <div class="field"><label for="event_type">Event type <span aria-hidden="true">*</span></label><select id="event_type" name="event_type" required><option value="">Select an event</option>{% set selected_type = field_value('event_type', event.event_type.value if event else '') %}{% for option in event_types %}<option value="{{ option.value }}" {% if selected_type == option.value %}selected{% endif %}>{{ option.value }}</option>{% endfor %}</select>{% if errors.event_type %}<p class="field-error">{{ errors.event_type }}</p>{% endif %}</div>
+  <div class="field"><label for="event_date">Event date and time <span aria-hidden="true">*</span></label><input id="event_date" name="event_date" type="datetime-local" required value="{{ field_value('event_date', event.event_date.strftime('%Y-%m-%dT%H:%M') if event else '') }}">{% if errors.event_date %}<p class="field-error">{{ errors.event_date }}</p>{% endif %}</div>
+  <div class="field field-wide"><label for="notes">Notes</label><textarea id="notes" name="notes" rows="6" maxlength="5000">{{ field_value('notes', event.notes if event else '') }}</textarea>{% if errors.notes %}<p class="field-error">{{ errors.notes }}</p>{% endif %}</div>
+</div>
+{% if errors.form %}<p class="field-error">{{ errors.form }}</p>{% endif %}
+<div class="actions"><button class="button button-primary" type="submit">{{ submit_label }}</button><a class="button button-secondary" href="{{ url_for('applications.detail', application_id=application.id) }}">Cancel</a></div>

@@ -8,7 +8,7 @@ The initial implementation uses Python 3.12+, Flask, SQLAlchemy, SQLite, Jinja t
 
 ## 2. Current implementation status
 
-Stages 1 through 6 provide the Flask foundation, SQLAlchemy data layer, application management, the Resume Library, application-specific documents, and hardened exact-version resume tracking. Application forms explicitly select one Resume Library record; application details and resume usage history identify that version; and newer uploads never alter prior associations. Later-stage workflows remain deferred.
+Stages 1 through 7 provide the Flask foundation, SQLAlchemy data layer, application management, resumes, documents, exact-version tracking, and application timelines. Users can add, edit, and explicitly delete dated events, see them chronologically, and retain automatic status-change history. Reminders and later-stage workflows remain deferred.
 
 ## 3. Functional requirements
 
@@ -83,6 +83,8 @@ Stage 5 acceptance: application documents support Resume, Cover Letter, Portfoli
 
 Stage 6 acceptance: an application stores a nullable foreign key to one exact Resume Library version. Creation and editing allow explicit assignment, reassignment, or clearing after validating the referenced record. Uploading or editing metadata for another resume cannot alter existing application foreign keys. A persisted resume version's original filename, generated storage filename, and SHA-256 fingerprint are immutable; changing the file requires uploading a new version. Multiple applications may reference one version, its usage history links to each application, and application-specific documents never modify this relationship.
 
+Stage 7 acceptance: every specified timeline event type can be added to one application with a required valid local date/time and optional validated notes. Events display from earliest to latest and may be edited or deleted without affecting other applications. Destructive actions are POST-only and CSRF-protected. A real status transition appends a dated Status changed event in the same transaction; unchanged or invalid status submissions do not add history. Existing resume and document relationships remain intact.
+
 For the initial empty installation, `init-db` is the schema baseline and uses SQLAlchemy metadata to create only missing tables. It is not an upgrade mechanism. Once released databases can contain user data, every schema change must ship as an explicit, sequential migration that first requires a verified backup, runs transactionally where SQLite permits, records its schema version, and is covered by upgrade tests. A future stage must introduce that first versioned migration before changing this baseline; `drop_all` or automatic destructive recreation must never be used for user data.
 
 ## 8. Delivery roadmap
@@ -93,8 +95,8 @@ For the initial empty installation, `init-db` is the schema baseline and uses SQ
 4. Resume library and version-safe file storage (complete).
 5. Application documents and secure delivery (complete).
 6. Exact resume tracking verification (complete).
-7. Timeline events and history (next stage).
-8. Reminders and date classifications.
+7. Timeline events and history (complete).
+8. Reminders and date classifications (next stage).
 9. Duplicate/Application Again review workflow and invariants.
 10. Dashboard summaries and recent activity.
 11. Offline analytics.

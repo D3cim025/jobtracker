@@ -9,7 +9,17 @@ from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
-from app.models import Application, ApplicationStatus, JobType, Priority, Resume, WorkSetup
+from app.models import (
+    Application,
+    ApplicationStatus,
+    JobType,
+    Priority,
+    Resume,
+    TimelineEvent,
+    TimelineEventType,
+    WorkSetup,
+    utc_now,
+)
 
 
 SORT_COLUMNS = {
@@ -227,7 +237,17 @@ def update_application_choice(application: Application, field: str, raw_value: s
     if enum_class is None:
         return False
     try:
-        setattr(application, field, enum_class(raw_value))
+        new_value = enum_class(raw_value)
     except ValueError:
         return False
+    old_value = getattr(application, field)
+    setattr(application, field, new_value)
+    if field == "status" and new_value != old_value:
+        application.timeline_events.append(
+            TimelineEvent(
+                event_type=TimelineEventType.STATUS_CHANGED,
+                event_date=utc_now(),
+                notes=f"Status changed from {old_value.value} to {new_value.value}.",
+            )
+        )
     return save_application(application, {})
