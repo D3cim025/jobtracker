@@ -5,8 +5,11 @@
 
   function updateLabel() {
     var current = document.documentElement.dataset.theme;
-    toggle.textContent = current === "dark" ? "Light mode" : "Dark mode";
-    toggle.setAttribute("aria-label", "Switch to " + (current === "dark" ? "light" : "dark") + " mode");
+    var dark = current === "dark";
+    var label = toggle.querySelector("[data-theme-label]");
+    if (label) label.textContent = dark ? "Light mode" : "Dark mode";
+    toggle.setAttribute("aria-label", "Switch to " + (dark ? "light" : "dark") + " mode");
+    toggle.setAttribute("aria-pressed", String(dark));
   }
 
   toggle.addEventListener("click", function () {
@@ -14,6 +17,12 @@
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem("jobtracker-theme", next); } catch (error) { /* Theme still works for this page. */ }
     updateLabel();
+  });
+  window.addEventListener("storage", function (event) {
+    if (event.key === "jobtracker-theme" && (event.newValue === "light" || event.newValue === "dark")) {
+      document.documentElement.dataset.theme = event.newValue;
+      updateLabel();
+    }
   });
   updateLabel();
 }());

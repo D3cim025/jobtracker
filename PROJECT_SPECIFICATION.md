@@ -8,7 +8,7 @@ The initial implementation uses Python 3.12+, Flask, SQLAlchemy, SQLite, Jinja t
 
 ## 2. Current implementation status
 
-Stages 1 through 11 provide the Flask foundation, application records, resumes, documents, exact-version tracking, timelines, reminders, Apply Again, the dashboard, and read-only offline analytics. Analytics uses applied-date trends, clearly defined current-status rates, and database-backed breakdowns with accessible local charts.
+Stages 1 through 13 provide the Flask foundation and all functionality through offline analytics, followed by an application-wide responsive pass and persistent light/dark theming. Every current page now uses fluid narrow-screen layouts, touch-friendly controls, guarded overflow, consistent component states, and an accessible theme control without external assets.
 
 ## 3. Functional requirements
 
@@ -93,6 +93,10 @@ Stage 10 acceptance: the root page is a responsive dashboard with live total and
 
 Stage 11 acceptance: the read-only Analytics page groups applications with a date applied by ISO calendar week and calendar month; missing applied dates never enter trends or rate denominators. Assessment, interview, offer, rejection, and withdrawal rates are explicitly defined as current-status shares of dated applications and show an insufficient-data state for a zero denominator. Status, job-type, work-setup, and normalized source breakdowns use database aggregation and accessible offline CSS charts without external dependencies.
 
+Stage 12 acceptance: navigation, forms, contained tables, cards, detail sections, dashboard statistics, reminders, documents, timelines, and analytics adapt fluidly across desktop, tablet, and phone widths. Narrow layouts retain all actions with comfortable touch targets, stack dense controls, contain long content, and avoid application-level horizontal scrolling.
+
+Stage 13 acceptance: a validated local preference selects light or dark mode before stylesheet rendering, persists across navigation and refresh, synchronizes across tabs, and exposes its state through an accessible toggle. Both themes cover forms, tables, cards, messages, statuses, destructive controls, reminders, analytics, empty/error states, keyboard focus, and reduced-motion preferences with no external dependency.
+
 For the initial empty installation, `init-db` is the schema baseline and uses SQLAlchemy metadata to create only missing tables. It is not an upgrade mechanism. Once released databases can contain user data, every schema change must ship as an explicit, sequential migration that first requires a verified backup, runs transactionally where SQLite permits, records its schema version, and is covered by upgrade tests. A future stage must introduce that first versioned migration before changing this baseline; `drop_all` or automatic destructive recreation must never be used for user data.
 
 ## 8. Delivery roadmap
@@ -108,9 +112,9 @@ For the initial empty installation, `init-db` is the schema baseline and uses SQ
 9. Duplicate/Application Again review workflow and invariants (complete).
 10. Dashboard summaries and recent activity (complete).
 11. Offline analytics (complete).
-12. Consistent backup, warned restore, and CSV/JSON export (next stage).
-13. Responsive desktop/mobile refinement.
-14. Persistent theme, empty/error states, confirmations, and accessibility polish.
+12. Responsive desktop/mobile refinement (complete).
+13. Persistent theme, empty/error states, confirmations, and accessibility polish (complete).
+14. Consistent backup, warned restore, and CSV/JSON export (next stage).
 15. Trusted-LAN/iPhone documentation and validation.
 16. Full security, privacy, quality, and offline review.
 17. Portfolio documentation and UI consistency.

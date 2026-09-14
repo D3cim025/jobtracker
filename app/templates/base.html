@@ -7,7 +7,7 @@
     (function () {
       try {
         var saved = localStorage.getItem("jobtracker-theme");
-        var theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        var theme = saved === "light" || saved === "dark" ? saved : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
         document.documentElement.dataset.theme = theme;
       } catch (error) { /* Keep the accessible light default. */ }
     }());
@@ -28,7 +28,7 @@
       <a href="{{ url_for('resumes.index') }}">Resumes</a>
       <a href="{{ url_for('reminders.index') }}">Reminders</a>
       <a href="{{ url_for('analytics.index') }}">Analytics</a>
-      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch color theme">Theme</button>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Switch to dark mode" aria-pressed="false"><span aria-hidden="true" data-theme-icon>◐</span><span data-theme-label>Dark mode</span></button>
     </nav>
   </header>
   <main id="main-content" class="page-shell">
