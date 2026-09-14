@@ -8,7 +8,7 @@ The initial implementation uses Python 3.12+, Flask, SQLAlchemy, SQLite, Jinja t
 
 ## 2. Current implementation status
 
-Stages 1 through 10 provide the Flask foundation, application records, resumes, documents, exact-version tracking, timelines, reminders, Apply Again, and a database-backed dashboard. The landing page now summarizes the application pipeline, current-period activity, active reminders, upcoming interviews and assessments, and recent activity. Analytics remains deferred.
+Stages 1 through 11 provide the Flask foundation, application records, resumes, documents, exact-version tracking, timelines, reminders, Apply Again, the dashboard, and read-only offline analytics. Analytics uses applied-date trends, clearly defined current-status rates, and database-backed breakdowns with accessible local charts.
 
 ## 3. Functional requirements
 
@@ -91,6 +91,8 @@ Stage 9 acceptance: Apply Again starts with an editable review and creates only 
 
 Stage 10 acceptance: the root page is a responsive dashboard with live total and per-status counts, calendar-week and calendar-month added/applied summaries, existing reminder-service classifications, upcoming interview and assessment records, recent applications and status changes, useful empty states, and links to existing workflows. Dashboard aggregation remains in a service layer, eagerly loads related applications where needed, and adds no schema or analytics implementation.
 
+Stage 11 acceptance: the read-only Analytics page groups applications with a date applied by ISO calendar week and calendar month; missing applied dates never enter trends or rate denominators. Assessment, interview, offer, rejection, and withdrawal rates are explicitly defined as current-status shares of dated applications and show an insufficient-data state for a zero denominator. Status, job-type, work-setup, and normalized source breakdowns use database aggregation and accessible offline CSS charts without external dependencies.
+
 For the initial empty installation, `init-db` is the schema baseline and uses SQLAlchemy metadata to create only missing tables. It is not an upgrade mechanism. Once released databases can contain user data, every schema change must ship as an explicit, sequential migration that first requires a verified backup, runs transactionally where SQLite permits, records its schema version, and is covered by upgrade tests. A future stage must introduce that first versioned migration before changing this baseline; `drop_all` or automatic destructive recreation must never be used for user data.
 
 ## 8. Delivery roadmap
@@ -105,8 +107,8 @@ For the initial empty installation, `init-db` is the schema baseline and uses SQ
 8. Reminders and date classifications (complete).
 9. Duplicate/Application Again review workflow and invariants (complete).
 10. Dashboard summaries and recent activity (complete).
-11. Offline analytics (next stage).
-12. Consistent backup, warned restore, and CSV/JSON export.
+11. Offline analytics (complete).
+12. Consistent backup, warned restore, and CSV/JSON export (next stage).
 13. Responsive desktop/mobile refinement.
 14. Persistent theme, empty/error states, confirmations, and accessibility polish.
 15. Trusted-LAN/iPhone documentation and validation.

@@ -49,6 +49,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     from app.routes.documents import documents_bp
     from app.routes.timeline import timeline_bp
     from app.routes.reminders import reminders_bp
+    from app.routes.analytics import analytics_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(applications_bp)
@@ -56,6 +57,7 @@ def create_app(test_config: dict | None = None) -> Flask:
     app.register_blueprint(documents_bp)
     app.register_blueprint(timeline_bp)
     app.register_blueprint(reminders_bp)
+    app.register_blueprint(analytics_bp)
 
     @app.cli.command("init-db")
     def init_db_command():
