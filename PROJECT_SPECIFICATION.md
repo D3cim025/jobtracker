@@ -8,7 +8,7 @@ The initial implementation uses Python 3.12+, Flask, SQLAlchemy, SQLite, Jinja t
 
 ## 2. Current implementation status
 
-Stages 1 through 7 provide the Flask foundation, SQLAlchemy data layer, application management, resumes, documents, exact-version tracking, and application timelines. Users can add, edit, and explicitly delete dated events, see them chronologically, and retain automatic status-change history. Reminders and later-stage workflows remain deferred.
+Stages 1 through 8 provide the Flask foundation, application records, resumes, documents, exact-version tracking, timelines, and reminders. Users can create, edit, complete/reopen, and explicitly delete application reminders; application and global views separate upcoming, overdue, and completed records. Dashboard work remains deferred.
 
 ## 3. Functional requirements
 
@@ -85,6 +85,8 @@ Stage 6 acceptance: an application stores a nullable foreign key to one exact Re
 
 Stage 7 acceptance: every specified timeline event type can be added to one application with a required valid local date/time and optional validated notes. Events display from earliest to latest and may be edited or deleted without affecting other applications. Destructive actions are POST-only and CSRF-protected. A real status transition appends a dated Status changed event in the same transaction; unchanged or invalid status submissions do not add history. Existing resume and document relationships remain intact.
 
+Stage 8 acceptance: every specified reminder type can be created for one application with a required valid local date/time, optional validated notes, an incomplete default, and creation timestamp. Application-scoped routes verify both parent and reminder IDs. Upcoming reminders sort earliest-first, overdue reminders sort nearest-to-now first, and completed reminders remain visible and sort latest-first. Completion and deletion are POST-only and CSRF-protected, deletion is explicitly confirmed, and reusable service queries support an optional application scope for later dashboard consumption.
+
 For the initial empty installation, `init-db` is the schema baseline and uses SQLAlchemy metadata to create only missing tables. It is not an upgrade mechanism. Once released databases can contain user data, every schema change must ship as an explicit, sequential migration that first requires a verified backup, runs transactionally where SQLite permits, records its schema version, and is covered by upgrade tests. A future stage must introduce that first versioned migration before changing this baseline; `drop_all` or automatic destructive recreation must never be used for user data.
 
 ## 8. Delivery roadmap
@@ -96,8 +98,8 @@ For the initial empty installation, `init-db` is the schema baseline and uses SQ
 5. Application documents and secure delivery (complete).
 6. Exact resume tracking verification (complete).
 7. Timeline events and history (complete).
-8. Reminders and date classifications (next stage).
-9. Duplicate/Application Again review workflow and invariants.
+8. Reminders and date classifications (complete).
+9. Duplicate/Application Again review workflow and invariants (next stage).
 10. Dashboard summaries and recent activity.
 11. Offline analytics.
 12. Consistent backup, warned restore, and CSV/JSON export.

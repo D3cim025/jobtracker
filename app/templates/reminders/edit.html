@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block title %}Edit reminder — JobTracker{% endblock %}{% block content %}
+<header class="page-heading"><p class="eyebrow">Application reminders</p><h1>Edit reminder</h1><p>{{ application.company_name }} — {{ application.position_title }}</p></header><form class="panel form-panel" method="post" novalidate><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% set submit_label='Save reminder' %}{% include "reminders/_form.html" %}</form>
+{% endblock %}

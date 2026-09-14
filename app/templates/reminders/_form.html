@@ -1,0 +1,8 @@
+{% macro field_value(name, fallback='') -%}{{ form_data.get(name, fallback if fallback is not none else '') }}{%- endmacro %}
+<div class="form-grid">
+  <div class="field"><label for="reminder_type">Reminder type <span aria-hidden="true">*</span></label><select id="reminder_type" name="reminder_type" required><option value="">Select a reminder</option>{% set selected_type = field_value('reminder_type', reminder.reminder_type.value if reminder else '') %}{% for option in reminder_types %}<option value="{{ option.value }}" {% if selected_type == option.value %}selected{% endif %}>{{ option.value }}</option>{% endfor %}</select>{% if errors.reminder_type %}<p class="field-error">{{ errors.reminder_type }}</p>{% endif %}</div>
+  <div class="field"><label for="reminder_date">Reminder date and time <span aria-hidden="true">*</span></label><input id="reminder_date" name="reminder_date" type="datetime-local" required value="{{ field_value('reminder_date', reminder.reminder_date.strftime('%Y-%m-%dT%H:%M') if reminder else '') }}">{% if errors.reminder_date %}<p class="field-error">{{ errors.reminder_date }}</p>{% endif %}</div>
+  <div class="field field-wide"><label for="notes">Notes</label><textarea id="notes" name="notes" rows="6" maxlength="5000">{{ field_value('notes', reminder.notes if reminder else '') }}</textarea>{% if errors.notes %}<p class="field-error">{{ errors.notes }}</p>{% endif %}</div>
+</div>
+{% if errors.form %}<p class="field-error">{{ errors.form }}</p>{% endif %}
+<div class="actions"><button class="button button-primary" type="submit">{{ submit_label }}</button><a class="button button-secondary" href="{{ url_for('applications.detail', application_id=application.id) }}">Cancel</a></div>

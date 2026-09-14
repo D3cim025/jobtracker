@@ -10,6 +10,7 @@ from app.services.application_service import (
     save_application,
     update_application_choice,
 )
+from app.services.reminder_service import reminder_groups
 
 applications_bp = Blueprint("applications", __name__, url_prefix="/applications")
 
@@ -60,7 +61,12 @@ def create():
 @applications_bp.get("/<int:application_id>")
 def detail(application_id: int):
     application = db.get_or_404(Application, application_id)
-    return render_template("applications/detail.html", application=application, **form_context())
+    return render_template(
+        "applications/detail.html",
+        application=application,
+        reminder_groups=reminder_groups(application.id),
+        **form_context(),
+    )
 
 
 @applications_bp.route("/<int:application_id>/edit", methods=["GET", "POST"])
