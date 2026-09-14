@@ -42,8 +42,10 @@ def create_app(test_config: dict | None = None) -> Flask:
     from app import models  # noqa: F401
 
     from app.routes.main import main_bp
+    from app.routes.applications import applications_bp
 
     app.register_blueprint(main_bp)
+    app.register_blueprint(applications_bp)
 
     @app.cli.command("init-db")
     def init_db_command():
