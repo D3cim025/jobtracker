@@ -8,7 +8,7 @@ The initial implementation uses Python 3.12+, Flask, SQLAlchemy, SQLite, Jinja t
 
 ## 2. Current implementation status
 
-Stage 1 provides the Flask application factory, configuration, extension placeholders, main blueprint, home and JSON health endpoints, base/home/error templates, local styling and theme script, a run entry point, documentation, and test infrastructure. Database entities and product CRUD are intentionally deferred to Stage 2 and later.
+Stages 1 and 2 provide the Flask application foundation plus the SQLAlchemy data layer. The implemented schema includes applications, immutable resume-version records, application documents, timeline events, reminders, and local settings with relationships, constraints, useful indexes, timestamps, and SQLite foreign-key enforcement. `flask --app run.py init-db` creates missing tables without replacing existing data. Product CRUD remains deferred to Stage 3 and later.
 
 ## 3. Functional requirements
 
@@ -73,13 +73,15 @@ The development server may bind to `0.0.0.0` for access from an iPhone on the sa
 
 pytest tests run against isolated configuration and temporary paths. Tests must assert behavior, relationships, validation, file safety, duplication invariants, backup contents, export contents, error handling, and chronological classifications—not only successful status codes. The complete suite runs after every major stage and must pass before proceeding.
 
-Stage 1 acceptance: the app factory can create a testing app; `/` renders a usable offline shell; `/health` returns structured healthy status; SQLite defaults under the instance directory; missing pages use a friendly 404; required local assets resolve; and no Stage 2 models are introduced.
+Stage 2 acceptance: the app factory retains all Stage 1 behavior; the six specified entities initialize in SQLite; enums and database constraints protect valid values and salary ranges; foreign keys are enforced; owned child records cascade only when an application is explicitly deleted; referenced resumes are protected; resume versions coexist; relationships are bidirectional and timeline/reminder collections are chronological; and initialization is repeatable without replacing data.
+
+For the initial empty installation, `init-db` is the schema baseline and uses SQLAlchemy metadata to create only missing tables. It is not an upgrade mechanism. Once released databases can contain user data, every schema change must ship as an explicit, sequential migration that first requires a verified backup, runs transactionally where SQLite permits, records its schema version, and is covered by upgrade tests. A future stage must introduce that first versioned migration before changing this baseline; `drop_all` or automatic destructive recreation must never be used for user data.
 
 ## 8. Delivery roadmap
 
-1. Foundation and tests (current stage).
-2. SQLAlchemy entities, relationships, schema initialization, and model tests.
-3. Application CRUD, status/priority, search, filters, and sorting.
+1. Foundation and tests (complete).
+2. SQLAlchemy entities, relationships, schema initialization, and model tests (complete).
+3. Application CRUD, status/priority, search, filters, and sorting (next stage).
 4. Resume library and version-safe file storage.
 5. Application documents and secure delivery.
 6. Exact resume tracking verification.
@@ -96,4 +98,3 @@ Stage 1 acceptance: the app factory can create a testing app; `/` renders a usab
 17. Portfolio documentation and UI consistency.
 
 Future options include authentication for broader remote access, reusable application templates, PWA installation/offline caching, and opt-in synchronization. None may compromise local ownership or historical accuracy.
-

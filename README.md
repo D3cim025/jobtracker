@@ -1,6 +1,6 @@
 # JobTracker
 
-JobTracker is a private, local-first job application tracker built with Flask and SQLite. Stage 1 establishes the application foundation; application records, resumes, documents, timelines, reminders, analytics, and backups will be added incrementally in later stages.
+JobTracker is a private, local-first job application tracker built with Flask and SQLite. Stages 1 and 2 establish the application foundation and relational data model; user-facing management workflows will be added incrementally in later stages.
 
 ## Requirements
 
@@ -30,6 +30,14 @@ If PowerShell blocks activation, you can run `.venv\Scripts\python.exe` directly
 ```
 
 Open `http://127.0.0.1:5000`. Stop the server with `Ctrl+C`. The default run mode does not enable Flask debug mode.
+
+Initialize a new local database before first use. This creates missing tables and does not replace existing records:
+
+```powershell
+.\.venv\Scripts\python.exe -m flask --app run.py init-db
+```
+
+`init-db` initializes a fresh database; it is deliberately not an upgrade command. Future schema changes will use committed, sequential migrations with a backup-first policy. Never delete or recreate `instance/jobtracker.db` to apply an upgrade.
 
 ## Offline usage
 
@@ -77,6 +85,7 @@ The backup and restore workflow is planned for Stage 12. Restore will require ex
 ```text
 app/
   __init__.py       Application factory and Flask extensions
+  models.py         SQLAlchemy entities, constraints, and relationships
   routes/           HTTP blueprints
   services/         Reusable business logic (later stages)
   templates/        Jinja pages and friendly errors
