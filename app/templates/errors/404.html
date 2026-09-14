@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Page not found — JobTracker{% endblock %}
+{% block content %}
+<section class="error-state"><p class="eyebrow">Error 404</p><h1>That page isn’t here.</h1><p>The address may be incorrect, or the page may have moved.</p><a class="button button-primary" href="{{ url_for('main.home') }}">Return home</a></section>
+{% endblock %}
+

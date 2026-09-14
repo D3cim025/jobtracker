@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Something went wrong — JobTracker{% endblock %}
+{% block content %}
+<section class="error-state"><p class="eyebrow">Error 500</p><h1>JobTracker hit a snag.</h1><p>Your data has not been intentionally changed. Return home and try again.</p><a class="button button-primary" href="{{ url_for('main.home') }}">Return home</a></section>
+{% endblock %}
+
