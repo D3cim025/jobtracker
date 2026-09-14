@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Attach document — JobTracker{% endblock %}
+{% block content %}
+<header class="page-heading"><p class="eyebrow">Application documents</p><h1>Attach a document</h1><p>{{ application.company_name }} — {{ application.position_title }}</p></header>
+<form class="panel form-panel" method="post" enctype="multipart/form-data" novalidate>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="form-grid">
+    <div class="field"><label for="document_type">Document type <span aria-hidden="true">*</span></label><select id="document_type" name="document_type" required><option value="">Select a type</option>{% for option in document_types %}<option value="{{ option.value }}" {% if form_data.get('document_type') == option.value %}selected{% endif %}>{{ option.value }}</option>{% endfor %}</select>{% if errors.document_type %}<p class="field-error">{{ errors.document_type }}</p>{% endif %}</div>
+    <div class="field"><label for="file">Local file <span aria-hidden="true">*</span></label><input id="file" name="file" type="file" accept=".pdf,.doc,.docx,.odt,.txt,.png,.jpg,.jpeg" required><p class="field-help">PDF, DOC, DOCX, ODT, TXT, PNG, or JPEG. Maximum 16 MB.</p>{% if errors.file %}<p class="field-error">{{ errors.file }}</p>{% endif %}</div>
+    <div class="field field-wide"><label for="notes">Notes</label><textarea id="notes" name="notes" rows="5" maxlength="5000">{{ form_data.get('notes', '') }}</textarea>{% if errors.notes %}<p class="field-error">{{ errors.notes }}</p>{% endif %}</div>
+  </div>
+  <div class="actions"><button class="button button-primary" type="submit">Attach document</button><a class="button button-secondary" href="{{ url_for('applications.detail', application_id=application.id) }}">Cancel</a></div>
+</form>
+{% endblock %}

@@ -80,7 +80,7 @@ The backup and restore workflow is planned for Stage 12. Restore will require ex
 - `JOBTRACKER_PORT`: defaults to `5000`.
 - `JOBTRACKER_DEBUG`: set to `1` only during local development; never for LAN use.
 
-Resume files are stored with generated names under `uploads/resumes`; their original names and SHA-256 fingerprints remain in the database. Do not rename or move stored files manually. Referenced resume versions must remain available to preserve application history.
+Resume files are stored with generated names under `uploads/resumes`; their original names and SHA-256 fingerprints remain in the database. Application-specific files are stored separately under `uploads/documents/<application-id>`. Do not rename or move stored files manually. Referenced resume versions must remain available to preserve application history.
 
 ## Project structure
 

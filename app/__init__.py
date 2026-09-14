@@ -35,6 +35,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     (Path(app.config["UPLOAD_ROOT"]) / "resumes").mkdir(parents=True, exist_ok=True)
+    (Path(app.config["UPLOAD_ROOT"]) / "documents").mkdir(parents=True, exist_ok=True)
 
     db.init_app(app)
     csrf.init_app(app)
@@ -45,10 +46,12 @@ def create_app(test_config: dict | None = None) -> Flask:
     from app.routes.main import main_bp
     from app.routes.applications import applications_bp
     from app.routes.resumes import resumes_bp
+    from app.routes.documents import documents_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(applications_bp)
     app.register_blueprint(resumes_bp)
+    app.register_blueprint(documents_bp)
 
     @app.cli.command("init-db")
     def init_db_command():

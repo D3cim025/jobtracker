@@ -197,12 +197,27 @@ def save_application(application: Application, values: dict) -> bool:
 
 
 def delete_application(application: Application) -> bool:
+    from app.services.document_service import (
+        finalize_quarantined_files,
+        prepare_application_document_deletion,
+        restore_quarantined_files,
+    )
+
+    try:
+        moved_files = prepare_application_document_deletion(application)
+    except (OSError, ValueError):
+        return False
     db.session.delete(application)
     try:
         db.session.commit()
     except SQLAlchemyError:
         db.session.rollback()
+        try:
+            restore_quarantined_files(moved_files)
+        except OSError:
+            pass
         return False
+    finalize_quarantined_files(moved_files)
     return True
 
 
