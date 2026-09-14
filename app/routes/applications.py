@@ -1,7 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 
 from app import db
-from app.models import Application, ApplicationStatus, JobType, Priority, WorkSetup
+from app.models import Application, ApplicationStatus, JobType, Priority, Resume, WorkSetup
 from app.services.application_service import (
     delete_application,
     distinct_sources,
@@ -20,6 +20,7 @@ def form_context(**extra):
         "priorities": Priority,
         "job_types": JobType,
         "work_setups": WorkSetup,
+        "resumes": list(db.session.scalars(db.select(Resume).order_by(Resume.display_name, Resume.version_name))),
     }
     context.update(extra)
     return context

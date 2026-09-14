@@ -9,7 +9,7 @@ from sqlalchemy import asc, desc, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
-from app.models import Application, ApplicationStatus, JobType, Priority, WorkSetup
+from app.models import Application, ApplicationStatus, JobType, Priority, Resume, WorkSetup
 
 
 SORT_COLUMNS = {
@@ -166,6 +166,20 @@ def parse_application_form(form: Mapping[str, str]) -> tuple[dict, dict[str, str
     email = values.get("contact_email")
     if email and ("@" not in email or email.startswith("@") or email.endswith("@")):
         errors["contact_email"] = "Enter a valid email address."
+
+    raw_resume_id = form.get("resume_id", "").strip()
+    if not raw_resume_id:
+        values["resume_id"] = None
+    else:
+        try:
+            resume_id = int(raw_resume_id)
+        except ValueError:
+            errors["resume_id"] = "Select a valid resume."
+        else:
+            if db.session.get(Resume, resume_id) is None:
+                errors["resume_id"] = "The selected resume no longer exists."
+            else:
+                values["resume_id"] = resume_id
 
     return values, errors
 

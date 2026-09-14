@@ -1,6 +1,6 @@
 # JobTracker
 
-JobTracker is a private, local-first job application tracker built with Flask and SQLite. Stages 1 and 2 establish the application foundation and relational data model; user-facing management workflows will be added incrementally in later stages.
+JobTracker is a private, local-first job application tracker built with Flask and SQLite. The current version includes application management and a local, version-preserving Resume Library; remaining workflows will be added incrementally.
 
 ## Requirements
 
@@ -79,6 +79,8 @@ The backup and restore workflow is planned for Stage 12. Restore will require ex
 - `JOBTRACKER_HOST`: defaults to `127.0.0.1`; use `0.0.0.0` only for trusted-LAN access.
 - `JOBTRACKER_PORT`: defaults to `5000`.
 - `JOBTRACKER_DEBUG`: set to `1` only during local development; never for LAN use.
+
+Resume files are stored with generated names under `uploads/resumes`; their original names and SHA-256 fingerprints remain in the database. Do not rename or move stored files manually. Referenced resume versions must remain available to preserve application history.
 
 ## Project structure
 

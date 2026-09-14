@@ -8,7 +8,7 @@ The initial implementation uses Python 3.12+, Flask, SQLAlchemy, SQLite, Jinja t
 
 ## 2. Current implementation status
 
-Stages 1 through 3 provide the Flask foundation, SQLAlchemy data layer, and application-management workflow. Users can now list, create, inspect, edit, and explicitly delete applications; update status and priority; and search, filter, or sort records through database queries. Resume-library and other later-stage interfaces remain deferred.
+Stages 1 through 4 provide the Flask foundation, SQLAlchemy data layer, application management, and the Resume Library. Users can upload independent resume versions, edit metadata without changing stored files, securely open/download files, search the library, assign a version to an application, review usage history, and delete only unreferenced versions. General application documents and later-stage workflows remain deferred.
 
 ## 3. Functional requirements
 
@@ -77,6 +77,8 @@ Stage 2 acceptance: the app factory retains all Stage 1 behavior; the six specif
 
 Stage 3 acceptance: application management provides server-validated create, detail, edit, explicit POST-only delete, status, and priority operations. List queries search company, position, location, contact, and notes; filter status, priority, job type, work setup, source, and applied-date range; and sort only by allowlisted columns. Invalid input preserves the submitted form without changing stored data, missing records return a friendly 404, and user content is escaped in HTML.
 
+Stage 4 acceptance: each upload creates a new resume row and generated local filename, preserves its original display filename, and records a SHA-256 fingerprint. PDF, DOC, DOCX, ODT, and TXT uploads are checked by extension, media type, and basic file signature; unsafe names and path traversal are rejected. File access is database-backed and contained within the configured resume root. Metadata edits never replace file identity. Application-to-resume selection and usage history are bidirectional, and referenced versions cannot be deleted.
+
 For the initial empty installation, `init-db` is the schema baseline and uses SQLAlchemy metadata to create only missing tables. It is not an upgrade mechanism. Once released databases can contain user data, every schema change must ship as an explicit, sequential migration that first requires a verified backup, runs transactionally where SQLite permits, records its schema version, and is covered by upgrade tests. A future stage must introduce that first versioned migration before changing this baseline; `drop_all` or automatic destructive recreation must never be used for user data.
 
 ## 8. Delivery roadmap
@@ -84,8 +86,8 @@ For the initial empty installation, `init-db` is the schema baseline and uses SQ
 1. Foundation and tests (complete).
 2. SQLAlchemy entities, relationships, schema initialization, and model tests (complete).
 3. Application CRUD, status/priority, search, filters, and sorting (complete).
-4. Resume library and version-safe file storage (next stage).
-5. Application documents and secure delivery.
+4. Resume library and version-safe file storage (complete).
+5. Application documents and secure delivery (next stage).
 6. Exact resume tracking verification.
 7. Timeline events and history.
 8. Reminders and date classifications.

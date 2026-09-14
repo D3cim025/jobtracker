@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block title %}Edit {{ resume.display_name }} — JobTracker{% endblock %}{% block content %}
+<header class="page-heading"><p class="eyebrow">Resume library</p><h1>Edit resume details</h1><p>The stored file and its hash remain unchanged.</p></header><form class="panel form-panel" method="post" novalidate><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% include "resumes/_metadata_form.html" %}{% if errors.form %}<p class="field-error">{{ errors.form }}</p>{% endif %}<div class="actions"><button class="button button-primary" type="submit">Save details</button><a class="button button-secondary" href="{{ url_for('resumes.detail', resume_id=resume.id) }}">Cancel</a></div></form>
+{% endblock %}

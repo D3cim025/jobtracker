@@ -11,6 +11,7 @@ def app(tmp_path):
             "SECRET_KEY": "test-secret",
             "SQLALCHEMY_DATABASE_URI": f"sqlite:///{(tmp_path / 'test.db').as_posix()}",
             "WTF_CSRF_ENABLED": False,
+            "UPLOAD_ROOT": str(tmp_path / "uploads"),
         }
     )
     with app.app_context():
