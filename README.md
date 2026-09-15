@@ -60,6 +60,19 @@ Start JobTracker:
 
 Open `http://127.0.0.1:5000` and stop the server with `Ctrl+C`. The normal server binds only to the local computer and does not enable debug mode.
 
+## Standalone Windows package
+
+Install the build dependency and create the initial onedir package:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-build.txt
+.\.venv\Scripts\python.exe -m PyInstaller --clean --noconfirm JobTracker.spec
+```
+
+Copy the complete `dist/JobTracker/` directory to the destination computer and double-click `JobTracker.exe`. Python and the project virtual environment are not required on that computer. The windowed launcher starts only on `http://127.0.0.1:5000` and opens the default browser after the health check succeeds. If startup fails, it displays a native Windows error dialog instead of failing silently.
+
+Standalone data is stored outside the installed package under `%LOCALAPPDATA%\JobTracker\`: the database and secret are in `instance/`, while uploaded files are in `uploads/`. Replacing or moving the packaged application therefore does not replace its data. Development data in the source project's `instance/` and `uploads/` directories remains separate and is not copied into a package automatically.
+
 ## Tests
 
 ```powershell
@@ -99,6 +112,9 @@ app/
 tests/               Behavioral and regression tests
 config.py            Local configuration defaults
 run.py               Development entry point
+launcher.py          Standalone Windows entry point
+JobTracker.spec      PyInstaller onedir build configuration
+requirements-build.txt
 PROJECT_SPECIFICATION.md
 requirements.txt
 ```

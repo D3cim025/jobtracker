@@ -8,7 +8,10 @@ class Config:
     SECRET_KEY = os.environ.get("JOBTRACKER_SECRET_KEY")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024
-    UPLOAD_ROOT = str(Path(__file__).resolve().parent / "uploads")
+    UPLOAD_ROOT = os.environ.get(
+        "JOBTRACKER_UPLOAD_ROOT",
+        str(Path(__file__).resolve().parent / "uploads"),
+    )
 
 
 def sqlite_uri(instance_path: str) -> str:

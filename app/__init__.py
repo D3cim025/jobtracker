@@ -1,3 +1,4 @@
+import os
 import secrets
 from pathlib import Path
 
@@ -48,8 +49,15 @@ def enable_sqlite_foreign_keys(dbapi_connection, _connection_record):
 def create_app(test_config: dict | None = None) -> Flask:
     """Create and configure a JobTracker application instance."""
 
-    app = Flask(__name__, instance_relative_config=True)
+    instance_path = os.environ.get("JOBTRACKER_INSTANCE_PATH")
+    app = Flask(
+        __name__,
+        instance_relative_config=True,
+        instance_path=instance_path,
+    )
     app.config.from_object(Config)
+    if upload_root := os.environ.get("JOBTRACKER_UPLOAD_ROOT"):
+        app.config["UPLOAD_ROOT"] = upload_root
     app.config.from_mapping(SQLALCHEMY_DATABASE_URI=sqlite_uri(app.instance_path))
 
     if test_config:
