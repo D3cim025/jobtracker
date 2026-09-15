@@ -38,9 +38,11 @@ Duplication first presents an editable review form. It may prefill position, job
 
 The dashboard shows counts by status, applications this week/month, upcoming interview/assessment/follow-up reminders, overdue reminders, recent activity, and quick actions. Analytics includes weekly/monthly volume; interview, assessment, offer, rejection, and withdrawal rates; and breakdowns by status, job type, work setup, and source. Any charts use local assets and accessible text alternatives.
 
-### Backup, restore, export, and settings
+### Settings and local preferences
 
-A backup archive includes a consistent SQLite snapshot plus all referenced resume and application files while preserving relative relationships. Restore is an explicit, warned workflow and never silently overwrites current data. CSV export is required; JSON export is planned. Settings remain local and cover theme, default currency/job type/work setup, backup/export access, and application version.
+User preferences remain local to the installation. The application supports persistent light/dark theme selection and maintains the local application configuration required for normal operation.
+
+The application does not include cloud synchronization, remote notification services, LAN access, public exposure, or account authentication in the current release.
 
 ## 4. Planned data entities
 
@@ -55,9 +57,9 @@ Foreign keys and transactions preserve relationships. Destructive behavior must 
 
 ## 5. Offline behavior
 
-All required templates, styles, scripts, icons, database operations, files, search, analytics, backup, export, and theme behavior work locally with no CDN or API dependency. Stored external job URLs remain visible offline, though opening them needs internet.
+All required templates, styles, scripts, icons, database operations, files, search, analytics, and theme behavior work locally with no CDN or API dependency. Stored external job URLs remain visible offline, though opening them needs internet.
 
-The supported release runs on the local computer through the loopback address. LAN/mobile access, public exposure, and PWA installation are not included.
+The supported release runs on the local computer through the loopback address. LAN/mobile access, public exposure, cloud synchronization, and PWA installation are not included.
 
 ## 6. Security, privacy, and accessibility
 
@@ -71,7 +73,7 @@ The supported release runs on the local computer through the loopback address. L
 
 ## 7. Testing and acceptance
 
-pytest tests run against isolated configuration and temporary paths. Tests must assert behavior, relationships, validation, file safety, duplication invariants, backup contents, export contents, error handling, and chronological classifications—not only successful status codes. The complete suite runs after every major stage and must pass before proceeding.
+pytest tests run against isolated configuration and temporary paths. Tests must assert behavior, relationships, validation, file safety, duplication invariants, error handling, and chronological classifications—not only successful status codes. The complete suite runs after every major stage and must pass before proceeding.
 
 Stage 2 acceptance: the app factory retains all Stage 1 behavior; the six specified entities initialize in SQLite; enums and database constraints protect valid values and salary ranges; foreign keys are enforced; owned child records cascade only when an application is explicitly deleted; referenced resumes are protected; resume versions coexist; relationships are bidirectional and timeline/reminder collections are chronological; and initialization is repeatable without replacing data.
 
@@ -120,5 +122,3 @@ For the initial empty installation, `init-db` is the schema baseline and uses SQ
 13. Persistent theme, empty/error states, confirmations, and accessibility polish (complete).
 14. Final security and quality review (complete).
 15. Portfolio documentation and UI consistency (complete).
-
-Future options include authentication for broader remote access, reusable application templates, PWA installation/offline caching, and opt-in synchronization. None may compromise local ownership or historical accuracy.
