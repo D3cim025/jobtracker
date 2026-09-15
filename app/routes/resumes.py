@@ -25,7 +25,7 @@ def create():
     if request.method == "POST":
         resume, errors = create_resume(request.form, request.files.get("file"))
         if resume:
-            flash("Resume version uploaded.", "success")
+            flash("Resume uploaded.", "success")
             return redirect(url_for("resumes.detail", resume_id=resume.id))
     return render_template(
         "resumes/create.html",

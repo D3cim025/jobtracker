@@ -47,10 +47,9 @@ def test_assign_resume_during_application_creation(app, client):
     )
     body = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert "Exact resume used" in body
+    assert "Resume used" in body
     assert "Software Engineer Resume" in body
-    assert "v1" in body
-    assert f"Resume version ID</dt><dd>#{resume_id}" in body
+    assert "Resume version" not in body
     with app.app_context():
         application = db.session.scalar(db.select(Application))
         assert application.resume_id == resume_id
@@ -68,7 +67,7 @@ def test_change_selected_resume_on_existing_application(app, client):
         follow_redirects=True,
     )
     assert response.status_code == 200
-    assert "v2" in response.get_data(as_text=True)
+    assert "Software Engineer Resume" in response.get_data(as_text=True)
     with app.app_context():
         application = db.session.get(Application, application_id)
         assert application.resume_id == second_id
@@ -84,7 +83,7 @@ def test_resume_can_be_explicitly_cleared_from_application(app, client):
         data=valid_form(company_name="Clear Co", resume_id=""),
         follow_redirects=True,
     )
-    assert "No Resume Library version is recorded" in response.get_data(as_text=True)
+    assert "No Resume Library item is recorded" in response.get_data(as_text=True)
     with app.app_context():
         assert db.session.get(Application, application_id).resume_id is None
 
@@ -136,7 +135,7 @@ def test_usage_history_contains_only_applications_for_that_version(app, client):
         add_application("Uses Second", second)
         add_application("Uses None")
     page = client.get(f"/resumes/{first_id}").get_data(as_text=True)
-    assert "These applications reference this exact file version" in page
+    assert "These applications reference this exact resume file" in page
     assert "Uses First" in page
     assert "Uses Second" not in page
     assert "Uses None" not in page

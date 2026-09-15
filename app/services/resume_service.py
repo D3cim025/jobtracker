@@ -50,7 +50,6 @@ def list_resumes(search: str = "") -> list[Resume]:
         statement = statement.where(
             or_(
                 Resume.display_name.ilike(pattern),
-                Resume.version_name.ilike(pattern),
                 Resume.target_role.ilike(pattern),
                 Resume.description.ilike(pattern),
                 Resume.original_file_name.ilike(pattern),
@@ -62,10 +61,10 @@ def list_resumes(search: str = "") -> list[Resume]:
 def parse_resume_metadata(form: Mapping[str, str]) -> tuple[dict, dict[str, str]]:
     errors: dict[str, str] = {}
     values: dict[str, str | None] = {}
-    limits = {"display_name": 200, "version_name": 100, "target_role": 200}
+    limits = {"display_name": 200, "target_role": 200}
     for field, maximum in limits.items():
         value = form.get(field, "").strip()
-        if field in {"display_name", "version_name"} and not value:
+        if field == "display_name" and not value:
             errors[field] = f"{field.replace('_', ' ').title()} is required."
         elif len(value) > maximum:
             errors[field] = f"Must be {maximum} characters or fewer."
@@ -74,6 +73,15 @@ def parse_resume_metadata(form: Mapping[str, str]) -> tuple[dict, dict[str, str]
     if description and len(description) > 5000:
         errors["description"] = "Description must be 5,000 characters or fewer."
     values["description"] = description
+    # Keep accepting the legacy field for compatibility, but it is no longer
+    # exposed by the UI. Missing values leave an existing internal identifier
+    # unchanged; new uploads receive a generated identifier below.
+    if "version_name" in form and form.get("version_name", "").strip():
+        version_name = form.get("version_name", "").strip()
+        if len(version_name) > 100:
+            errors["version_name"] = "Must be 100 characters or fewer."
+        else:
+            values["version_name"] = version_name
     return values, errors
 
 
@@ -110,6 +118,7 @@ def validate_upload(upload: FileStorage | None) -> tuple[str | None, str | None]
 
 def create_resume(form: Mapping[str, str], upload: FileStorage | None) -> tuple[Resume | None, dict[str, str]]:
     values, errors = parse_resume_metadata(form)
+    values.setdefault("version_name", f"resume-{uuid4().hex[:12]}")
     extension, upload_error = validate_upload(upload)
     if upload_error:
         errors["file"] = upload_error

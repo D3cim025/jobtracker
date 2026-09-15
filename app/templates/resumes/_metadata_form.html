@@ -1,7 +1,6 @@
 {% macro field_value(name, fallback='') -%}{{ form_data.get(name, fallback if fallback is not none else '') }}{%- endmacro %}
 <div class="form-grid">
   <div class="field"><label for="display_name">Display name <span aria-hidden="true">*</span></label><input id="display_name" name="display_name" maxlength="200" required value="{{ field_value('display_name', resume.display_name if resume else '') }}">{% if errors.display_name %}<p class="field-error">{{ errors.display_name }}</p>{% endif %}</div>
-  <div class="field"><label for="version_name">Version <span aria-hidden="true">*</span></label><input id="version_name" name="version_name" maxlength="100" required placeholder="e.g. v3" value="{{ field_value('version_name', resume.version_name if resume else '') }}">{% if errors.version_name %}<p class="field-error">{{ errors.version_name }}</p>{% endif %}</div>
   <div class="field field-wide"><label for="target_role">Target role</label><input id="target_role" name="target_role" maxlength="200" value="{{ field_value('target_role', resume.target_role if resume else '') }}"></div>
   <div class="field field-wide"><label for="description">Description</label><textarea id="description" name="description" rows="5" maxlength="5000">{{ field_value('description', resume.description if resume else '') }}</textarea>{% if errors.description %}<p class="field-error">{{ errors.description }}</p>{% endif %}</div>
 </div>

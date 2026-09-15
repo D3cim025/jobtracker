@@ -45,7 +45,7 @@ def test_resume_library_has_useful_empty_state(client):
     response = client.get("/resumes")
     body = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert "No resume versions found" in body
+    assert "No resumes found" in body
     assert "/resumes/new" in body
 
 
@@ -64,6 +64,48 @@ def test_upload_creates_hashed_version_with_generated_storage_name(app, client, 
         assert (tmp_path / "uploads" / "resumes" / resume.stored_file_name).read_bytes() == PDF_BYTES
 
 
+def test_resume_version_is_hidden_and_generated_internally(app, client):
+    upload_page = client.get("/resumes/new").get_data(as_text=True)
+    assert 'name="version_name"' not in upload_page
+    assert ">Version<" not in upload_page
+
+    response = client.post(
+        "/resumes/new",
+        data={
+            "display_name": "General Resume",
+            "target_role": "Engineering",
+            "description": "Primary resume",
+            "file": (BytesIO(PDF_BYTES), "resume.pdf", "application/pdf"),
+        },
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    with app.app_context():
+        resume = db.session.scalar(db.select(Resume))
+        assert resume.version_name.startswith("resume-")
+        internal_identifier = resume.version_name
+        resume_id = resume.id
+
+    detail = response.get_data(as_text=True)
+    library = client.get("/resumes").get_data(as_text=True)
+    edit_page = client.get(f"/resumes/{resume_id}/edit").get_data(as_text=True)
+    assert internal_identifier not in detail
+    assert internal_identifier not in library
+    assert 'name="version_name"' not in edit_page
+
+    edit_response = client.post(
+        f"/resumes/{resume_id}/edit",
+        data={
+            "display_name": "Updated Resume",
+            "target_role": "Platform Engineering",
+            "description": "Updated details",
+        },
+    )
+    assert edit_response.status_code == 302
+    with app.app_context():
+        assert db.session.get(Resume, resume_id).version_name == internal_identifier
+
+
 def test_upload_requires_metadata_and_file(app, client):
     response = client.post(
         "/resumes/new",
@@ -72,7 +114,7 @@ def test_upload_requires_metadata_and_file(app, client):
     body = response.get_data(as_text=True)
     assert response.status_code == 200
     assert "Display Name is required" in body
-    assert "Version Name is required" in body
+    assert 'name="version_name"' not in body
     assert "Choose a resume file" in body
     with app.app_context():
         assert db.session.scalar(db.select(db.func.count(Resume.id))) == 0

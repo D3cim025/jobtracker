@@ -27,7 +27,7 @@ def form_context(**extra):
         "priorities": Priority,
         "job_types": JobType,
         "work_setups": WorkSetup,
-        "resumes": list(db.session.scalars(db.select(Resume).order_by(Resume.display_name, Resume.version_name))),
+        "resumes": list(db.session.scalars(db.select(Resume).order_by(Resume.display_name, Resume.id))),
     }
     context.update(extra)
     return context
