@@ -9,6 +9,7 @@ a { color: inherit; overflow-wrap: anywhere; text-underline-offset: .18em; }
 .site-header { max-width: 1180px; margin: auto; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; }
 .site-nav { display: flex; align-items: center; gap: 1rem; }
 .site-nav a { min-height: 44px; display: inline-flex; align-items: center; padding: .45rem .15rem; border-radius: .4rem; font-weight: 700; text-decoration: none; }
+.site-nav a[aria-current="page"] { color: var(--accent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .45rem; }
 .brand { display: inline-flex; gap: .7rem; align-items: center; text-decoration: none; font-weight: 760; letter-spacing: -.02em; }
 .brand-mark { display: grid; place-items: center; width: 2.4rem; aspect-ratio: 1; color: var(--surface); background: var(--accent-strong); border-radius: .7rem; font-size: .76rem; letter-spacing: .04em; }
 .theme-toggle, .button { min-height: 44px; border-radius: .65rem; padding: .7rem 1rem; font: inherit; font-weight: 700; }

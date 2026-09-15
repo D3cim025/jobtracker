@@ -8,7 +8,7 @@ The initial implementation uses Python 3.12+, Flask, SQLAlchemy, SQLite, Jinja t
 
 ## 2. Current implementation status
 
-Stages 1 through 14 provide the Flask foundation and all functionality through offline analytics, responsive layouts, persistent theming, and a final security and quality hardening pass. The audit strengthened validation, status-history integrity, filesystem failure recovery, installation secrets, and defensive response headers without changing the schema or local-first design.
+Stages 1 through 15 form the complete portfolio release: application tracking, immutable resume versions, application documents, timelines, reminders, Apply Again, dashboard summaries, offline analytics, responsive layouts, persistent theming, security hardening, and final usability/documentation polish.
 
 ## 3. Functional requirements
 
@@ -53,11 +53,11 @@ A backup archive includes a consistent SQLite snapshot plus all referenced resum
 
 Foreign keys and transactions preserve relationships. Destructive behavior must be explicit and must not erase history through unintended cascades.
 
-## 5. Offline behavior and LAN access
+## 5. Offline behavior
 
 All required templates, styles, scripts, icons, database operations, files, search, analytics, backup, export, and theme behavior work locally with no CDN or API dependency. Stored external job URLs remain visible offline, though opening them needs internet.
 
-The development server may bind to `0.0.0.0` for access from an iPhone on the same trusted Wi-Fi network. The user opens `http://<windows-ipv4>:5000` and may need to permit Python on private networks in Windows Firewall. JobTracker must not be port-forwarded or exposed to the public internet. Future PWA support may add a manifest/service worker, but it is not part of the current stage.
+The supported release runs on the local computer through the loopback address. LAN/mobile access, public exposure, and PWA installation are not included.
 
 ## 6. Security, privacy, and accessibility
 
@@ -99,6 +99,8 @@ Stage 13 acceptance: a validated local preference selects light or dark mode bef
 
 Stage 14 acceptance: all mutations remain CSRF-protected and POST-only where destructive; malformed URLs, unsafe numeric values, oversized references, metadata, and filenames fail as validation rather than server errors. Status transitions from every editing path create exactly one atomic history event. Upload filesystem failures roll back database work and attempt local cleanup, each installation receives a persistent random secret when none is configured, and responses include defensive no-sniff, framing, referrer, and cache headers.
 
+Stage 15 acceptance: all existing pages use consistent navigation, wording, empty states, form guidance, focus and theme behavior; documentation accurately describes the implemented local-first product, setup, storage and security model, project structure, tests, and limitations without claiming deferred features.
+
 For the initial empty installation, `init-db` is the schema baseline and uses SQLAlchemy metadata to create only missing tables. It is not an upgrade mechanism. Once released databases can contain user data, every schema change must ship as an explicit, sequential migration that first requires a verified backup, runs transactionally where SQLite permits, records its schema version, and is covered by upgrade tests. A future stage must introduce that first versioned migration before changing this baseline; `drop_all` or automatic destructive recreation must never be used for user data.
 
 ## 8. Delivery roadmap
@@ -117,8 +119,6 @@ For the initial empty installation, `init-db` is the schema baseline and uses SQ
 12. Responsive desktop/mobile refinement (complete).
 13. Persistent theme, empty/error states, confirmations, and accessibility polish (complete).
 14. Final security and quality review (complete).
-15. Consistent backup, warned restore, and CSV/JSON export (future stage).
-16. Trusted-LAN/iPhone documentation and validation.
-17. Portfolio documentation and UI consistency.
+15. Portfolio documentation and UI consistency (complete).
 
 Future options include authentication for broader remote access, reusable application templates, PWA installation/offline caching, and opt-in synchronization. None may compromise local ownership or historical accuracy.
